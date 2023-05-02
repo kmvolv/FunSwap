@@ -1,0 +1,114 @@
+ScreenManager:
+    PicSwap:
+        name: "picWindow"
+    VidSwap:
+        name: "vidWindow"
+
+<PicSwap>:
+    GridLayout:
+
+        name: "picWindow"
+
+        cols: 1
+        rows : 3
+        size: root.width, root.height
+
+        GridLayout:
+            cols:2
+            size_hint: 1 , .3
+
+            Label:
+                text: "PicSwap"
+
+            Button:
+                text:"VidSwap"
+                background_normal : ''
+                background_color: .93 , .81 , .7 , 1
+                size_hint: .2 , 1
+                on_release: 
+                    app.root.current = "vidWindow" 
+                    root.manager.transition.direction = "left"
+
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing : 5
+            cols:2
+
+            Image:
+                id: img1
+                source: 'C:\\Users\\rohai\\OneDrive\\Desktop\\College\\DIP\\DIPproj\\Final_Proj\\images\\bill_gates.jpg'
+                size: root.width, root.height
+
+            Image:
+                id: img2
+                source: 'C:\\Users\\rohai\\OneDrive\\Desktop\\College\\DIP\\DIPproj\\Final_Proj\\images\\dwayne_johnson.jpg'
+                size: root.width, root.height
+
+        GridLayout:
+            cols:3
+            size_hint: 1 , .3
+
+            Button:
+                text: "Insert Image 1"
+                on_press: root.file_chooser_1()
+                   
+
+            Button:
+                text: "Insert Image 2"
+                on_press: root.file_chooser_2()
+            Button:
+                text: "Faceswapp"
+                on_release: root.update_result()
+
+<VidSwap>:
+    GridLayout:
+
+        name: "vidWindow"
+
+        cols: 1
+        rows : 3
+        size: root.width, root.height
+
+        GridLayout:
+            cols:2
+            size_hint: 1 , .3
+
+            Label:
+                text: "VidSwap"
+
+            Button:
+                text:"PicSwap"
+                background_normal : ''
+                background_color: .93 , .81 , .7 , 1
+                size_hint: .2 , 1
+                on_release: 
+                    app.root.current = "picWindow" 
+                    root.manager.transition.direction = "right"
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 5
+            cols: 2
+
+            Image:
+                id: img
+                source: 'C:\\Users\\rohai\\OneDrive\\Desktop\\College\\DIP\\DIPproj\\Final_Proj\\images\\bill_gates.jpg'
+                size: root.width, root.height
+
+            Image:
+                id: vidfeed
+                source: 'C:\\Users\\rohai\\OneDrive\\Desktop\\College\\DIP\\DIPproj\\Final_Proj\\images\\dwayne_johnson.jpg'
+                size: root.width, root.height
+
+        GridLayout:
+            cols:2
+            size_hint: 1 , .3
+
+            Button:
+                text: "Upload Image"
+                on_press: root.file_chooser()
+                   
+
+            Button:
+                text: "Pause Capture"
+                on_press: root.file_chooser_2()
