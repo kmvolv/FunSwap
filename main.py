@@ -151,9 +151,6 @@ class FaceSwap():
                                                     np_points=src_np_points)
 
     def face_swapping(self,SRC_FILE,DEST_FILE):
-        print(f"-------> This is SOURCE : {SRC_FILE}")
-        print(f"-------> This is DESTINATION : {DEST_FILE}")
-
         src_image = cv2.imread(SRC_FILE)
         src_image_gray = cv2.cvtColor(src_image, cv2.COLOR_BGR2GRAY)
         src_mask = np.zeros_like(src_image_gray)
@@ -240,34 +237,16 @@ class FaceSwap():
     
 
 class BasicApp(App):
-    img_link = "C:\\Users\\rohai\\OneDrive\\Desktop\\College\\DIP\\DIPproj\\Final_Proj\\images\\bill_gates.jpg"
+    img_link = ""
     image = cv2.imread(img_link)
 
     SwapObj = FaceSwap()
 
-    SwapObj.set_src_image(image)
+    if(image is not None):
+        SwapObj.set_src_image(image)
 
     def __init__(self):
         Clock.schedule_interval(self.update, 1.0/33.0)        
-
-    # def build(self):
-    #     self.web_cam = Image(size_hint = (1,0.8), source = self.img_link)
-    #     self.web_cam_2 = Image(size_hint = (1,0.8))                     # Second Camera Feed
-    #     self.button = Button(text = "Upload Image", size_hint = (1,.1), on_press = self.show_file_chooser)
-
-    #     cam_layout = BoxLayout(orientation='horizontal')        
-    #     cam_layout.add_widget(self.web_cam)
-    #     # layout.add_widget(self.button)
-    #     cam_layout.add_widget(self.web_cam_2)
-
-    #     master_layout = BoxLayout(orientation = "vertical")
-    #     master_layout.add_widget(cam_layout)
-    #     master_layout.add_widget(self.button)
-
-    #     self.capture = cv2.VideoCapture(0)
-    #     Clock.schedule_interval(self.update, 1.0/33.0)
-
-    #     return master_layout
 
     def show_file_chooser(self,instance):
         file_chooser = FileChooserListView()
@@ -286,7 +265,6 @@ class BasicApp(App):
         global src_image, src_image_gray, src_mask, src_landmark_points, src_np_points, src_convexHull, indexes_triangles
         try:
             ret, frame = self.capture.read()
-            # frame = frame[120:120+250, 200:200+250, :]
 
             dest_image = frame
 
@@ -310,37 +288,19 @@ class BasicApp(App):
 
 
 class VidSwap(Screen):
-    img_link = "C:\\Users\\rohai\\OneDrive\\Desktop\\College\\DIP\\DIPproj\\Final_Proj\\images\\bill_gates.jpg"
+    img_link = ""
     image = cv2.imread(img_link)
 
     SwapObj = FaceSwap()
 
-    SwapObj.set_src_image(image)
+    if(image is not None):
+        SwapObj.set_src_image(image)
 
     def __init__(self, **kwargs):
         super(VidSwap, self).__init__(**kwargs)
 
         self.capture = cv2.VideoCapture(0)
         Clock.schedule_interval(self.update, 1.0/33.0)        
-
-    # def build(self):
-    #     self.web_cam = Image(size_hint = (1,0.8), source = self.img_link)
-    #     self.web_cam_2 = Image(size_hint = (1,0.8))                     # Second Camera Feed
-    #     self.button = Button(text = "Upload Image", size_hint = (1,.1), on_press = self.show_file_chooser)
-
-    #     cam_layout = BoxLayout(orientation='horizontal')        
-    #     cam_layout.add_widget(self.web_cam)
-    #     # layout.add_widget(self.button)
-    #     cam_layout.add_widget(self.web_cam_2)
-
-    #     master_layout = BoxLayout(orientation = "vertical")
-    #     master_layout.add_widget(cam_layout)
-    #     master_layout.add_widget(self.button)
-
-    #     self.capture = cv2.VideoCapture(0)
-    #     Clock.schedule_interval(self.update, 1.0/33.0)
-
-    #     return master_layout
 
     def file_chooser(self):
         filechooser.open_file(on_selection = self.selected)
@@ -357,7 +317,6 @@ class VidSwap(Screen):
         
         ret, frame = self.capture.read()
         result = frame
-            # frame = frame[120:120+250, 200:200+250, :]
         try:
             dest_image = frame
 
@@ -375,27 +334,13 @@ class VidSwap(Screen):
 
 
 class PicSwap(Screen):
-    img1 = "C:\\Users\\rohai\\OneDrive\\Desktop\\College\\DIP\\DIPproj\\Final_Proj\\images\\bill_gates.jpg"
-    img2 = "C:\\Users\\rohai\\OneDrive\\Desktop\\College\\DIP\\DIPproj\\Final_Proj\\images\\dwayne_johnson.jpg"
+    img1 = ""
+    img2 = ""
 
     orig_texture_1 = None
     orig_texture_2 = None
 
     swapObj = FaceSwap()
-
-    # def show_file_chooser(self,instance):
-    #     print("FUNCTION EXECUTED")
-    #     file_chooser = FileChooserListView()
-    #     file_chooser.bind(on_submit=self.load_image)
-    #     self.root.add_widget(file_chooser)
-
-    # def load_image(self, instance, _, __):
-    #     file_path = instance.selection[0]
-    #     print(file_path)
-    #     # self.image.source = file_path
-    #     self.image = cv2.imread(file_path)
-    #     self.SwapObj.set_src_image(self.image)
-    #     self.root.remove_widget(instance)
 
     def update_result(self):
         res1 = self.swapObj.face_swapping(self.ids.img1.source,self.ids.img2.source)
@@ -416,10 +361,6 @@ class PicSwap(Screen):
 
         self.ids.img1.texture = img_texture
 
-        print(f"This is TEXTURE 1 : {self.orig_texture_1}")
-        print(f"This is TEXTURE 2 : {self.orig_texture_2}")
-
-
     def file_chooser_1(self):
         filechooser.open_file(on_selection = self.selected1)
 
@@ -431,9 +372,6 @@ class PicSwap(Screen):
             self.ids.img2.texture = self.orig_texture_2
             self.orig_texture_2 = None
 
-        print(f"This is TEXTURE 1 : {self.orig_texture_1}")
-        print(f"This is TEXTURE 2 : {self.orig_texture_2}")
-
     def file_chooser_2(self):
         filechooser.open_file(on_selection = self.selected2)
 
@@ -444,9 +382,6 @@ class PicSwap(Screen):
         if self.orig_texture_1 is not None:
             self.ids.img1.texture = self.orig_texture_1
             self.orig_texture_1 = None
-
-        print(f"This is TEXTURE 1 : {self.orig_texture_1}")
-        print(f"This is TEXTURE 2 : {self.orig_texture_2}")
 
 kv = Builder.load_file("main.kv")    
 class FinalApp(App):
