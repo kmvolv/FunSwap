@@ -21,7 +21,7 @@ Face-Swapping application for photos and real-time use. This project has been im
 
 ### VidSwap
 - Carries out real-time face swapping for a given reference image through users camera.
-- Demonstration : Real-time face swapping with the face of Dwayne Johnson
+- Demonstration : __Real-time face swapping with the face of Dwayne Johnson__
 
 <p align='center'>
   <img src = "/demos/vidswap_demo.gif"/>
