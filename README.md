@@ -15,8 +15,14 @@ Face-Swapping application for photos and real-time use. This project has been im
 ---
 ### PicSwap
 - Swaps the faces of two uploaded images.
-- Demonstration :
+- Demonstration : __Swapping faces of a baby and Taylor Swift__
+
+![PicSwap Demo](/demos/picswap_demo.png)
 
 ### VidSwap
 - Carries out real-time face swapping for a given reference image through users camera.
-- Demonstration : 
+- Demonstration : Real-time face swapping with the face of Dwayne Johnson
+
+<p align='center'>
+  <img src = "/demos/vidswap_demo.gif"/>
+</p>
