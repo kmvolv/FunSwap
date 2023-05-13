@@ -19,11 +19,20 @@ ScreenManager:
 
             Label:
                 text: "PicSwap"
+                bold: True
+                font_size: 45
+                background_color: 0.141, 0.255, 0.922, 1
+                canvas.before:
+                    Color:
+                        rgba: self.background_color
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
 
             Button:
                 text:"VidSwap"
                 background_normal : ''
-                background_color: .93 , .81 , .7 , 1
+                background_color: 0.922, 0.329, 0.141 , 1
                 size_hint: .2 , 1
                 on_release: 
                     app.root.current = "vidWindow" 
@@ -75,11 +84,20 @@ ScreenManager:
 
             Label:
                 text: "VidSwap"
+                bold: True
+                font_size: 45
+                background_color: 0.922, 0.329, 0.141 , 1
+                canvas.before:
+                    Color:
+                        rgba: self.background_color
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
 
             Button:
                 text:"PicSwap"
                 background_normal : ''
-                background_color: .93 , .81 , .7 , 1
+                background_color: 0.141, 0.255, 0.922, 1
                 size_hint: .2 , 1
                 on_release: 
                     app.root.current = "picWindow" 
@@ -98,6 +116,7 @@ ScreenManager:
             Image:
                 id: vidfeed
                 source: ''
+                play: False
                 size: root.width, root.height
 
         GridLayout:
@@ -110,5 +129,6 @@ ScreenManager:
                    
 
             Button:
-                text: "Pause Capture"
-                on_press: root.file_chooser_2()
+                id: playpause
+                text: "Toggle Camera"
+                on_press: root.toggle_camera()

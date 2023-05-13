@@ -28,6 +28,7 @@ mp_face_mesh = mp.solutions.face_mesh
 class FaceSwap():
     global src_image, src_image_gray, src_mask, src_landmark_points, src_np_points, src_convexHull, indexes_triangles
 
+    # Using the mediapipe library to get landmark points of face
     def get_landmark_points(self,src_image):
         with mp_face_mesh.FaceMesh(
                 static_image_mode=True,
@@ -38,7 +39,7 @@ class FaceSwap():
             if not results.multi_face_landmarks:
                 return None
             if len(results.multi_face_landmarks) > 1:
-                sys.exit("There are too much face landmarks")
+                sys.exit("There are too many face landmarks")
 
             src_face_landmark = results.multi_face_landmarks[0].landmark
             landmark_points = []
@@ -49,6 +50,7 @@ class FaceSwap():
 
             return landmark_points
 
+
     def extract_index_nparray(self,nparray):
         index = None
         for num in nparray[0]:
@@ -56,6 +58,8 @@ class FaceSwap():
             break
         return index
 
+
+    # Obtaining indices of triangle segments
     def get_triangles(self,convexhull, landmarks_points, np_points):
         rect = cv2.boundingRect(convexhull)
         subdiv = cv2.Subdiv2D(rect)
@@ -82,6 +86,7 @@ class FaceSwap():
 
         return indexes_triangles
 
+    # Using Delaunay Triangulation to divide convex hull into multiple triangles
     def triangulation(self,triangle_index, landmark_points, img=None):
         tr1_pt1 = landmark_points[triangle_index[0]]
         tr1_pt2 = landmark_points[triangle_index[1]]
@@ -105,6 +110,7 @@ class FaceSwap():
 
         return points, cropped_triangle, cropped_triangle_mask, rect
 
+    # Apply to approriate amount of warping to match the triangle of reference to destination image
     def warp_triangle(self,rect, points1, points2, src_cropped_triangle, dest_cropped_triangle_mask):
         (x, y, w, h) = rect
         matrix = cv2.getAffineTransform(np.float32(points1), np.float32(points2))
@@ -112,6 +118,7 @@ class FaceSwap():
         warped_triangle = cv2.bitwise_and(warped_triangle, warped_triangle, mask=dest_cropped_triangle_mask)
         return warped_triangle
 
+    # Adding warped triangle to the corresponding triangle in the new image
     def add_piece_of_new_face(self,new_face, rect, warped_triangle):
         (x, y, w, h) = rect
         new_face_rect_area = new_face[y: y + h, x: x + w]
@@ -122,6 +129,7 @@ class FaceSwap():
         new_face_rect_area = cv2.add(new_face_rect_area, warped_triangle)
         new_face[y: y + h, x: x + w] = new_face_rect_area
 
+    # To swap triangles obtained from triangulation and add color correction
     def swap_new_face(self,dest_image, dest_image_gray, dest_convexHull, new_face):
         face_mask = np.zeros_like(dest_image_gray)
         head_mask = cv2.fillConvexPoly(face_mask, dest_convexHull, 255)
@@ -135,6 +143,7 @@ class FaceSwap():
 
         return cv2.seamlessClone(result, dest_image, head_mask, center_face, cv2.MIXED_CLONE)
 
+    # Finding landmark points and doing triangulation of source image
     def set_src_image(self,image):
         global src_image, src_image_gray, src_mask, src_landmark_points, src_np_points, src_convexHull, indexes_triangles
         src_image = image
@@ -150,7 +159,9 @@ class FaceSwap():
                                                     landmarks_points=src_landmark_points,
                                                     np_points=src_np_points)
 
+    # Function to carry out picture face swap, from destinatio and source file paths
     def face_swapping(self,SRC_FILE,DEST_FILE):
+
         src_image = cv2.imread(SRC_FILE)
         src_image_gray = cv2.cvtColor(src_image, cv2.COLOR_BGR2GRAY)
         src_mask = np.zeros_like(src_image_gray)
@@ -201,6 +212,7 @@ class FaceSwap():
         
         return result
 
+    # Function to carry out real-time face swapping, using the same algorithm
     def vid_swapping(self, dest_image):
         dest_image_gray = cv2.cvtColor(dest_image, cv2.COLOR_BGR2GRAY)
         dest_mask = np.zeros_like(dest_image_gray)
@@ -234,77 +246,37 @@ class FaceSwap():
                                         dest_convexHull=dest_convexHull, new_face=new_face)
         
         return result
-    
 
-class BasicApp(App):
-    img_link = ""
-    image = cv2.imread(img_link)
-
-    SwapObj = FaceSwap()
-
-    if(image is not None):
-        SwapObj.set_src_image(image)
-
-    def __init__(self):
-        Clock.schedule_interval(self.update, 1.0/33.0)        
-
-    def show_file_chooser(self,instance):
-        file_chooser = FileChooserListView()
-        file_chooser.bind(on_submit=self.load_image)
-        self.root.add_widget(file_chooser)
-
-    def load_image(self, instance, _, __):
-        file_path = instance.selection[0]
-        print(file_path)
-        # self.image.source = file_path
-        self.image = cv2.imread(file_path)
-        self.SwapObj.set_src_image(self.image)
-        self.root.remove_widget(instance)
-
-    def update(self, *args):
-        global src_image, src_image_gray, src_mask, src_landmark_points, src_np_points, src_convexHull, indexes_triangles
-        try:
-            ret, frame = self.capture.read()
-
-            dest_image = frame
-
-            # Original Video Feed
-            buf = cv2.flip(frame, 0).tobytes()
-            img_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
-            img_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
-            self.web_cam.texture = img_texture
-
-            # Face Swapped Feed
-            result = self.SwapObj.vid_swapping(dest_image)
-
-            result = cv2.medianBlur(result, 3)
-        except:
-            result = frame
-
-        buf = cv2.flip(result, 0).tobytes()
-        img_texture = Texture.create(size=(result.shape[1], result.shape[0]), colorfmt='bgr')
-        img_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
-        self.ids.vidfeed.texture = img_texture   # Second Camera Feed
-
-
+# Video Swap Window 
 class VidSwap(Screen):
-    img_link = ""
-    image = cv2.imread(img_link)
 
     SwapObj = FaceSwap()
 
-    if(image is not None):
-        SwapObj.set_src_image(image)
+    # To Play/Pause Video feed
+    def toggle_camera(self):
+        if(self.ids.img.source == ''): 
+            return
 
-    def __init__(self, **kwargs):
-        super(VidSwap, self).__init__(**kwargs)
+        camera = self.ids.vidfeed
+        if(camera.play):
+            camera.play = False
+            self.ids.playpause.text = "Play"
+            self.heya.cancel()
+        else:
+            camera.play = True
+            self.ids.playpause.text = "Pause"
 
-        self.capture = cv2.VideoCapture(0)
-        Clock.schedule_interval(self.update, 1.0/33.0)        
+            image = cv2.imread(self.ids.img.source)
 
+            self.SwapObj.set_src_image(image)
+            self.capture = cv2.VideoCapture(0)
+            self.heya = Clock.schedule_interval(self.update, 1.0/33.0)  
+
+    # Used to open user desired file
     def file_chooser(self):
         filechooser.open_file(on_selection = self.selected)
 
+    # To update selection on application
     def selected(self,selection):
         if selection:
             self.ids.img.source = selection[0].replace("\\","\\\\")
@@ -312,11 +284,13 @@ class VidSwap(Screen):
 
             self.SwapObj.set_src_image(self.image)
 
+    # For real-time update of video feed with face swapping
     def update(self, *args):
         global src_image, src_image_gray, src_mask, src_landmark_points, src_np_points, src_convexHull, indexes_triangles
-        
+
         ret, frame = self.capture.read()
         result = frame
+    
         try:
             dest_image = frame
 
@@ -330,9 +304,9 @@ class VidSwap(Screen):
         buf = cv2.flip(result, 0).tobytes()
         img_texture = Texture.create(size=(result.shape[1], result.shape[0]), colorfmt='bgr')
         img_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
-        self.ids.vidfeed.texture = img_texture   # Second Camera Feed
+        self.ids.vidfeed.texture = img_texture   
 
-
+# PicSwap Window
 class PicSwap(Screen):
     img1 = ""
     img2 = ""
@@ -342,9 +316,13 @@ class PicSwap(Screen):
 
     swapObj = FaceSwap()
 
+    # Swapping pictures with faces and updating the swapped faces
     def update_result(self):
-        res1 = self.swapObj.face_swapping(self.ids.img1.source,self.ids.img2.source)
-        res2 = self.swapObj.face_swapping(self.ids.img2.source,self.ids.img1.source)
+        try:
+            res1 = self.swapObj.face_swapping(self.ids.img1.source,self.ids.img2.source)
+            res2 = self.swapObj.face_swapping(self.ids.img2.source,self.ids.img1.source)
+        except:
+            return
 
         self.orig_texture_1 = self.ids.img1.texture
         self.orig_texture_2 = self.ids.img2.texture
@@ -361,6 +339,7 @@ class PicSwap(Screen):
 
         self.ids.img1.texture = img_texture
 
+    # To select first image
     def file_chooser_1(self):
         filechooser.open_file(on_selection = self.selected1)
 
@@ -372,6 +351,7 @@ class PicSwap(Screen):
             self.ids.img2.texture = self.orig_texture_2
             self.orig_texture_2 = None
 
+    # To select second image
     def file_chooser_2(self):
         filechooser.open_file(on_selection = self.selected2)
 
@@ -383,6 +363,7 @@ class PicSwap(Screen):
             self.ids.img1.texture = self.orig_texture_1
             self.orig_texture_1 = None
 
+# Main application, linked with main.kv
 kv = Builder.load_file("main.kv")    
 class FinalApp(App):
     def build(self):
